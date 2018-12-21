@@ -12,7 +12,10 @@ class Album extends Component {
     this.state = {
       album: album,
       currentSong: album.songs[0],
-      isPlaying: false
+      isPlaying: false,
+      isHovered: false,
+      buttonPlayPause: 'none',
+      buttonPlayPauseTarget: 0
     };
 
     this.audioElement = document.createElement('audio');
@@ -41,10 +44,19 @@ class Album extends Component {
     } else {
       if (!isSameSong) { this.setSong(song); }
       this.play();
+      this.setState({ buttonPlayPause: 'pause'})
     }
   }
 
-  render() {
+  handleMouseEnter (song, index) {
+    console.log(song, index);
+    if (song !== this.state.currentSong) {this.setState({ isHovered: true, buttonPlayPause: 'play', buttonPlayPauseTarget: index }) };
+    if (song == this.state.currentSong && !this.state.isPlaying) {this.setState({ isHovered: true, buttonPlayPause: 'play', buttonPlayPauseTarget: index }) };
+    if (song == this.state.currentSong && this.state.isPlaying) {this.setState({ isHovered: true, buttonPlayPause: 'pause', buttonPlayPauseTarget: index }) };
+    console.log(this.state);
+  }
+
+    render() {
     return (
       <section className="album">
         <section id="album-info">
@@ -64,8 +76,12 @@ class Album extends Component {
           <tbody>
             {
               this.state.album.songs.map( (song, index) =>
-                <tr className="song" key={index} onClick={() => this.handleSongClick(song)} >
-                  <td> { index + 1 } </td>
+                <tr className="song" key={index} onClick={() => this.handleSongClick(song)} onMouseEnter={() => this.handleMouseEnter(song, index)}>
+                  <td>
+                    <span> {index + 1} </span>
+                    <span> {(this.state.isHovered && this.state.buttonPlayPause == 'play' && this.state.buttonPlayPauseTarget == index) ? <i class="icon ion-md-play"></i> : ''} </span>
+                    <span> {(this.state.isHovered && this.state.buttonPlayPause == 'pause' && this.state.buttonPlayPauseTarget == index) ? <i class="icon ion-md-pause"></i> : ''} </span>
+                  </td>
                   <td> { song.title} </td>
                   <td> { song.duration} </td>
                 </tr>
