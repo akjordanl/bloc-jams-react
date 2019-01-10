@@ -17,10 +17,12 @@ class Album extends Component {
       duration: album.songs[0].duration,
       isPlaying: false,
       isHovered: false,
+      volume: 1
     };
 
     this.audioElement = document.createElement('audio');
     this.audioElement.src = album.songs[0].audioSrc;
+    this.audioElement.volume = this.state.volume;
   }
 
   componendDidMount() {
@@ -30,16 +32,21 @@ class Album extends Component {
       },
       durationchange: e => {
         this.setState({ duration: this.audioElement.duration });
+      },
+      volumechange: e => {
+        this.setState({ volume: this.audioElement.volume })
       }
     };
     this.audioElement.addEventListener('timeupdate', this.eventListeners.timeupdate);
     this.audioElement.addEventListener('durationchange', this.eventListeners.durationchange);
+    this.audioElement.addEventListener('volume', this.eventListeners.volumechange);
   }
 
   componentWillUnmount() {
     this.audioElement.src = null;
     this.audioElement.removeEventListener('timeupdate', this.eventListeners.timeupdate);
     this.audioElement.removeEventListener('durationchange', this.eventListeners.durationchange);
+    this.audioElement.removeEventListener('volume', this.eventListeners.volumechange);
   }
 
   play() {
@@ -76,6 +83,12 @@ class Album extends Component {
     this.setState({ currentTime: newTime});
   }
 
+  handleVolumeChange(e) {
+    const newVolume = e.target.value;
+    this.audioElement.volume = newVolume;
+    this.setState({ volume: newVolume })
+  }
+
   setSong(song) {
     this.audioElement.src = song.audioSrc;
     this.setState({ currentSong: song });
@@ -93,19 +106,25 @@ class Album extends Component {
   }
 
   handleMouseEnter (index) {
-    this.setState( { isHovered: index })
+    this.setState({ isHovered: index })
   }
 
   handleMouseLeave (index) {
-    this.setState( { isHovered: null })
+    this.setState({ isHovered: null })
   }
 
   playOrPauseIcon (song, index) {
     if (index == this.state.isHovered && (song !== this.state.currentSong || !this.state.isPlaying) ) {
-      return <i class="icon ion-md-play"></i>
+      return <i className="icon ion-md-play"></i>
     } else if (index == this.state.isHovered && song == this.state.currentSong && this.state.isPlaying) {
-      return <i class="icon ion-md-pause"></i>
+      return <i className="icon ion-md-pause"></i>
     } else { return index + 1 }
+  }
+
+  formatTime (timeInSec) {
+    var minutes = Math.floor(timeInSec / 60, 0);
+    var seconds = Math.floor(timeInSec % 60, 0);
+    return isNaN(timeInSec) ? "--:--" : (String(minutes).padStart(2,0) + ":" + String(seconds).padStart(2,0));
   }
 
 
@@ -133,8 +152,8 @@ class Album extends Component {
                   <td>
                     { this.playOrPauseIcon (song, index) }
                   </td>
-                  <td> { song.title} </td>
-                  <td> { song.duration} </td>
+                  <td> { song.title } </td>
+                  <td> { this.formatTime(song.duration) } </td>
                 </tr>
               )
             }
@@ -145,10 +164,13 @@ class Album extends Component {
           currentSong={this.state.currentSong}
           currentTime={this.audioElement.currentTime}
           duration={this.audioElement.duration}
+          volume={this.audioElement.volume}
           handleSongClick={() => this.handleSongClick(this.state.currentSong) }
           handlePrevClick={() => this.handlePrevClick() }
           handleNextClick={() => this.handleNextClick() }
-          handleTimeChange={(e) => this.handleTimeChange(e)}
+          handleTimeChange={(e) => this.handleTimeChange(e) }
+          handleVolumeChange={(e) => this.handleVolumeChange(e) }
+          formatTime={this.formatTime.bind(this)}
         />
       </section>
     );
